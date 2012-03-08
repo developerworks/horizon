@@ -1,5 +1,5 @@
 ==============================
-Change the branding of Horizon
+改变Horizon的商标
 ==============================
 
 Changing the Page Title
