@@ -2,20 +2,18 @@
 改变Horizon的商标
 ==============================
 
-Changing the Page Title
+修改页面标题
 =======================
 
-The OpenStack Dashboard Page Title branding (i.e. "**OpenStack** Dashboard")
-can be overwritten by adding the attribute ``SITE_BRANDING``
-to ``local_settings.py`` with the value being the desired name.
+OpenStack Dashboard页面标题(例如. "**OpenStack** Dashboard")可以通过添加``SITE_BRANDING``属性到``local_settings.py``进行覆盖,并设置你期望的名字.
 
-The file ``local_settings.py`` can be found at the Horizon directory path of
+文件``local_settings.py``位于如下Horizon目录路径
 ``horizon/openstack-dashboard/local/local_settings.py``.
 
-Changing the Page Logo
+改变页面图标
 =======================
 
-The OpenStack Logo is pulled in through ``style.css``::
+OpenStack图片是在``style.css``样式表中设置的::
 
     #splash .modal {
         background: #fff url(../images/logo.png) no-repeat center 35px;
@@ -23,7 +21,7 @@ The OpenStack Logo is pulled in through ``style.css``::
     h1.brand a {
         background: url(../images/logo.png) top left no-repeat;
 
-To override the OpenStack Logo image, replace the image at the directory path
+要覆盖OpenStack图标图像,替换卫浴如下目录路径的图像
 ``horizon/openstack-dashboard/dashboard/static/dashboard/images/logo.png``.
 
-The dimensions should be ``width: 108px, height: 121px``.
+尺寸应为 ``宽度: 108px, 高度: 121px``.
