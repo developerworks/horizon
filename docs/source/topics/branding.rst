@@ -21,7 +21,7 @@ OpenStack图片是在``style.css``样式表中设置的::
     h1.brand a {
         background: url(../images/logo.png) top left no-repeat;
 
-要覆盖OpenStack图标图像,替换卫浴如下目录路径的图像
+要覆盖OpenStack图标图像,替换位于如下目录路径的图像
 ``horizon/openstack-dashboard/dashboard/static/dashboard/images/logo.png``.
 
 尺寸应为 ``宽度: 108px, 高度: 121px``.

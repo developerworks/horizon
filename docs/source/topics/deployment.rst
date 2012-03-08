@@ -1,47 +1,41 @@
 =================
-Deploying Horizon
+部署 Horizon
 =================
 
-This guide aims to cover some common questions, concerns and pitfalls you
-may encounter when deploying Horizon in a production environment.
+本指南针对在产品环境中部署Horizon时遇到的一些常见问题,关注和陷阱.
 
-Session Storage
+会话存储
 ===============
 
-Horizon uses `Django's sessions framework`_ for handling user session data;
-however that's not the end of the story. There are numerous session backends
-available, which are controlled through the ``SESSION_ENGINE`` setting in
-your ``local_settings.py`` file. What follows is a quick discussion of the
+Horizon使用 `Django的会话框架`_ 处理用户会话数据;但是还有各种会话后端可以使用,
+可通过``local_settings.py``文件中的``SESSION_ENGINE``设置控制. What follows is a quick discussion of the
 pros and cons of each of the common options as they pertain to deploying
 Horizon specifically.
 
-.. _Django's sessions framework: https://docs.djangoproject.com/en/dev/topics/http/sessions/
+.. _Django的会话框架: https://docs.djangoproject.com/en/dev/topics/http/sessions/
 
-Local Memory Cache
+本地内存高速缓存
 ------------------
 
-Enabled by::
+启用::
 
     SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
     CACHES = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
     }
 
-Local memory storage is the quickest and easiest session backend to set up,
-as it has no external dependencies whatsoever. However, it has two significant
-drawbacks:
+本地内存存储是最快捷,最容易设置的会话后端,无任何外部依赖,但是有两个严重的缺点:
 
-  * No shared storage across processes or workers.
-  * No persistence after a process terminates.
+  * 不能在进程间共享存储.
+  * 数据非持久化,进程终止后数据丢失.
 
-The local memory backend is enabled as the default for Horizon solely because
-it has no dependencies. It is not recommended for production use, or even for
-serious development work. For better options, read on.
+因为没有依赖性,Horizon默认启用本地内存后端,但是不推荐在产品环境中使用,甚至是高强度的开发工作.
+更好的选择是使用Memcached, 它解决了上述第一个缺点.
 
 Memcached
 ---------
 
-Enabled by::
+启用::
 
     SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
     CACHES = {
@@ -49,24 +43,20 @@ Enabled by::
         'LOCATION': 'my_memcached_host:11211',
     }
 
-External caching using an application such as memcached offers persistence
-and shared storage, and can be very useful for small-scale deployment and/or
-development. However, for distributed and high-availability scenarios
-memcached has inherent problems which are beyond the scope of this
-documentation.
+应用程序使用的外部缓存,比如Memcached,提供了持久性和共享存储,在小规模的部署和开发中非常有用.
+但是对于分布式和高可用场景,memcached有一些固有的问题,这些问题超出了本文的讨论范围.
 
-Memcached is an extremely fast and efficient cache backend for cases where it
-fits the depooyment need. But it's not appropriate for all scenarios.
+Memcached是一个极快和高效的缓存后端,能满足部署的需要,但仍不适用于所有场景.
 
-Requirements:
+要求:
 
-  * Memcached service running and accessible.
-  * Python memcached module installed.
+  * Memcached 服务运行并可访问.
+  * 安装Python memcached模块.
 
-Database
+数据库
 --------
 
-Enabled by::
+启用::
 
     SESSION_ENGINE = 'django.core.cache.backends.db.DatabaseCache'
     DATABASES = {
@@ -75,35 +65,27 @@ Enabled by::
         }
     }
 
-Database-backed sessions are scalable (using an appropriate database strategy),
-persistent, and can be made high-concurrency and highly-available.
+数据库会话后端是可伸缩的(采用合适的数据库策略),持久的,并可以使之高并发,以及高可用.
 
-The downside to this approach is that database-backed sessions are one of the
-slower session storages, and incur a high overhead under heavy usage. Proper
-configuration of your database deployment can also be a substantial
+此方式的一个负面因素是数据库会话后端是一个比较慢的存储方式,使用过多会招致很高的负荷.
+Proper configuration of your database deployment can also be a substantial
 undertaking and is far beyond the scope of this documentation.
 
-Cached Database
+缓存数据库
 ---------------
 
-To mitigate the performance issues of database queries, you can also consider
-using Django's ``cached_db`` session backend which utilizes both your database
-and caching infrastructure to perform write-through caching and efficient
-retrieval. You can enable this hybrid setting by configuring both your database
-and cache as discussed above and then using::
+为了减轻数据库查询的性能问题,可以考虑使用Django的``cached_db``会话后端,他使用了数据库和缓存架构
+来执行连续写入缓存和高效的检索,你可以配置上述所示的数据库和缓存的配置,并设置SESSION_ENGINE启用混合方式::
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 
 Cookies
 -------
 
-If you're using Django 1.4 or later, a new session backend is available to you
-which avoids server load and scaling problems: the ``signed_cookies`` backend!
+如果使用Django 1.4以及更高版本, 有一个新的会话后端可用,它避免了服务器负载和伸缩问题: ``signed_cookies``后端!
 
-This backend stores session data in a cookie which is stored by the
-user's browser. The backend uses a cryptographic signing technique to ensure
-session data is not tampered with during transport (**this is not the same
-as encryption, session data is still readable by an attacker**).
+此后端存储会话数据于用户的浏览器的Cookie中. 此后端使用了签名技术保证会话数据在传输的过程中不被篡改
+(**这不同于加密,会话数据仍然是可读的**)
 
 The pros of this session engine are that it doesn't require any additional
 dependencies or infrastructure overhead, and it scales indefinitely as long
@@ -113,7 +95,8 @@ The biggest downside is that it places session data into storage on the user's
 machine and transports it over the wire. It also limits the quantity of
 session data which can be stored.
 
-For a thorough discussion of the security implications of this session backend,
-please read the `Django documentation on cookie-based sessions`_.
+一个最大的缺点是,这些会话数据是存放在用户的机器中,并通过网络传输.它限制了可以储存的会话数据量.
+
+关于此会话后端的安全方面的详尽讨论,请阅读 `Django documentation on cookie-based sessions`_.
 
 .. _Django documentation on cookie-based sessions: https://docs.djangoproject.com/en/dev/topics/http/sessions/#using-cookie-based-sessions
